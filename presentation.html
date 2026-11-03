@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Travel & Tour Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  html, body {
+    width:100%; height:100%;
+    overflow:hidden;
+    font-family: 'Poppins', sans-serif;
+    background:#000;
+  }
+
+  /* ═══════════ SLIDE BASE ═══════════ */
+  .slide {
+    width:100vw; height:100vh;
+    display:none;
+    flex-direction:column;
+    padding:60px 80px;
+    position:relative;
+    overflow:hidden;
+    background:radial-gradient(circle at 20% 20%, #0f2f5c 0%, #0B1E3A 40%, #050d1c 100%);
+  }
+  .slide.active {
+    display:flex;
+    animation: slideIn 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+  @keyframes slideIn {
+    from { opacity:0; transform: translateX(40px); }
+    to   { opacity:1; transform: translateX(0); }
+  }
+
+  /* Floating blobs background */
+  .slide::before, .slide::after {
+    content:''; position:absolute; border-radius:50%;
+    filter: blur(90px); opacity:0.35; pointer-events:none;
+    animation: float 12s ease-in-out infinite;
+  }
+  .slide::before {
+    width:450px; height:450px;
+    background: linear-gradient(135deg, #00C896, #1E88E5);
+    top:-100px; left:-100px;
+  }
+  .slide::after {
+    width:500px; height:500px;
+    background: linear-gradient(135deg, #7C3AED, #EC4899);
+    bottom:-150px; right:-100px;
+    animation-delay: -6s;
+  }
+  @keyframes float {
+    0%,100% { transform: translate(0,0) scale(1); }
+    50%     { transform: translate(40px,30px) scale(1.1); }
+  }
+
+  /* Accent top bar */
+  .slide > .topbar {
+    position:absolute; top:0; left:0; right:0;
+    height:6px;
+    background: linear-gradient(90deg, #00C896, #1E88E5, #7C3AED, #EC4899);
+    background-size: 300% 100%;
+    animation: shimmer 4s linear infinite;
+    z-index: 10;
+  }
+  @keyframes shimmer {
+    0%   { background-position: 0% 50%; }
+    100% { background-position: 300% 50%; }
+  }
+
+  /* ═══════════ TYPOGRAPHY ═══════════ */
+  h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size:56px; font-weight:900;
+    background: linear-gradient(135deg, #00C896 0%, #1E88E5 50%, #7C3AED 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height:1.2;
+    letter-spacing: 1px;
+  }
+  h2 {
+    font-size:40px; font-weight:800;
+    color:#fff;
+    margin-bottom:30px;
+    padding-bottom:14px;
+    position:relative;
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+  h2::after {
+    content:''; position:absolute; bottom:0; left:0;
+    width:100px; height:4px;
+    background: linear-gradient(90deg, #00C896, #1E88E5);
+    border-radius:2px;
+  }
+  h2 .icon {
+    font-size:38px;
+    filter: drop-shadow(0 0 12px rgba(0,200,150,0.6));
+  }
+  h3 {
+    font-size:22px; color:#00C896;
+    margin:20px 0 10px 0;
+    font-weight:700;
+    display:flex; align-items:center; gap:10px;
+  }
+  p, li { font-size:17px; line-height:1.7; color:#d8e0ec; }
+  ul { list-style:none; margin:8px 0; }
+  li {
+    padding:8px 0 8px 34px;
+    position:relative;
+    transition: transform 0.2s, color 0.2s;
+  }
+  li::before {
+    content:'▸';
+    position:absolute; left:8px; top:8px;
+    color:#00C896; font-size:20px; font-weight:bold;
+  }
+  li:hover {
+    transform: translateX(6px);
+    color:#fff;
+  }
+
+  /* ═══════════ CONTENT ═══════════ */
+  .content { flex:1; overflow-y:auto; padding-right:10px; z-index:2; position:relative; }
+  .content::-webkit-scrollbar { width:6px; }
+  .content::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #00C896, #1E88E5);
+    border-radius:3px;
+  }
+
+  /* Two-column layout */
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:30px; }
+  .card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(0,200,150,0.2);
+    border-radius:16px;
+    padding:22px 26px;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s;
+  }
+  .card:hover {
+    border-color: rgba(0,200,150,0.6);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0,200,150,0.2);
+  }
+  .card h3 { margin-top:0; }
+
+  /* KPI cards */
+  .kpi-grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
+    gap:16px;
+    margin:16px 0;
+  }
+  .kpi {
+    background: linear-gradient(135deg, rgba(30,136,229,0.2), rgba(0,200,150,0.15));
+    border: 1px solid rgba(0,200,150,0.35);
+    border-radius:14px;
+    padding:18px 20px;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s;
+  }
+  .kpi:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 30px rgba(0,200,150,0.35);
+    border-color: #00C896;
+  }
+  .kpi .label {
+    font-size:12px; color:#8899aa;
+    text-transform: uppercase; letter-spacing:1px;
+    font-weight:600;
+  }
+  .kpi .value {
+    font-size:26px; font-weight:800;
+    background: linear-gradient(135deg, #00C896, #1E88E5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-top:6px;
+  }
+
+  /* Table */
+  table {
+    width:100%; border-collapse:separate;
+    border-spacing: 0 6px;
+    margin-top:14px;
+  }
+  th {
+    background: linear-gradient(135deg, rgba(30,136,229,0.4), rgba(0,200,150,0.2));
+    color:#00C896;
+    padding:12px 16px;
+    text-align:left;
+    font-size:14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  th:first-child { border-radius: 10px 0 0 10px; }
+  th:last-child  { border-radius: 0 10px 10px 0; }
+  td {
+    padding:11px 16px;
+    background: rgba(255,255,255,0.03);
+    font-size:15px;
+    border-top:1px solid rgba(255,255,255,0.05);
+    border-bottom:1px solid rgba(255,255,255,0.05);
+  }
+  tr:hover td { background: rgba(0,200,150,0.1); color:#fff; }
+
+  /* Code */
+  code {
+    background: rgba(0,0,0,0.5);
+    color:#00C896;
+    padding:3px 10px;
+    border-radius:6px;
+    font-family: 'Courier New', monospace;
+    font-size:14px;
+    border:1px solid rgba(0,200,150,0.3);
+  }
+  pre {
+    background: rgba(0,0,0,0.5);
+    padding:16px 20px;
+    border-radius:12px;
+    border-left: 4px solid #00C896;
+    overflow-x:auto;
+    margin:10px 0;
+  }
+  pre code { background:none; border:none; padding:0; font-size:14px; }
+
+  /* Timeline */
+  .timeline { display:flex; gap:0; margin:20px 0; position:relative; }
+  .timeline::before {
+    content:''; position:absolute; top:32px; left:0; right:0;
+    height:3px;
+    background: linear-gradient(90deg, #00C896, #1E88E5, #7C3AED);
+    z-index: 1;
+  }
+  .tl-step {
+    flex:1; text-align:center; position:relative; z-index:2;
+    padding-top: 0;
+  }
+  .tl-dot {
+    width:64px; height:64px; border-radius:50%;
+    margin: 0 auto 12px;
+    background: linear-gradient(135deg, #00C896, #1E88E5);
+    display:flex; align-items:center; justify-content:center;
+    font-size:26px;
+    box-shadow: 0 0 20px rgba(0,200,150,0.5);
+    transition: transform 0.3s;
+  }
+  .tl-step:hover .tl-dot { transform: scale(1.15); }
+  .tl-step p { font-size:13px; color:#d8e0ec; }
+
+  /* Feature pills */
+  .pills { display:flex; flex-wrap:wrap; gap:10px; margin:12px 0; }
+  .pill {
+    padding:8px 18px;
+    border-radius:30px;
+    background: linear-gradient(135deg, rgba(0,200,150,0.2), rgba(30,136,229,0.2));
+    border:1px solid rgba(0,200,150,0.4);
+    color:#fff; font-size:14px; font-weight:600;
+    transition: all 0.3s;
+  }
+  .pill:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,200,150,0.4);
+    border-color:#00C896;
+  }
+
+  /* Security badges */
+  .sec-grid {
+    display:grid; grid-template-columns: repeat(3,1fr);
+    gap:12px; margin-top:12px;
+  }
+  .sec-item {
+    background: rgba(0,200,150,0.08);
+    border-left: 3px solid #00C896;
+    padding:10px 14px;
+    border-radius: 8px;
+    font-size:13px;
+    transition: all 0.3s;
+  }
+  .sec-item:hover {
+    background: rgba(0,200,150,0.2);
+    transform: translateX(5px);
+  }
+  .sec-item b { color:#00C896; display:block; font-size:12px; margin-bottom:2px; }
+  .sec-item span { color:#d8e0ec; }
+
+  /* Status badges */
+  .badge {
+    display:inline-block; padding:4px 14px;
+    border-radius: 20px; font-size:13px; font-weight:600;
+    margin-right:8px;
+  }
+  .badge.green { background: rgba(0,200,150,0.2); color:#00C896; border:1px solid #00C896; }
+  .badge.yellow { background: rgba(255,193,7,0.2); color:#FFC107; border:1px solid #FFC107; }
+  .badge.red { background: rgba(239,68,68,0.2); color:#EF4444; border:1px solid #EF4444; }
+  .badge.blue { background: rgba(30,136,229,0.2); color:#1E88E5; border:1px solid #1E88E5; }
+
+  /* Title slide */
+  .title-slide {
+    text-align:center;
+    justify-content:center; align-items:center;
+  }
+  .title-slide h1 {
+    font-size:62px;
+    max-width:1200px;
+    animation: glow 3s ease-in-out infinite alternate;
+  }
+  @keyframes glow {
+    from { filter: drop-shadow(0 0 15px rgba(0,200,150,0.5)); }
+    to   { filter: drop-shadow(0 0 30px rgba(30,136,229,0.7)); }
+  }
+  .title-slide .sub {
+    font-size:20px; color:#fff;
+    margin-top:22px; line-height:1.9;
+    max-width:900px;
+  }
+  .title-slide .divider {
+    width:120px; height:4px; margin:30px auto;
+    background: linear-gradient(90deg, #00C896, #1E88E5, #7C3AED);
+    border-radius:2px;
+  }
+  .title-slide .footer {
+    margin-top:30px; font-size:14px;
+    color:#8899aa; letter-spacing:2px;
+    text-transform: uppercase;
+  }
+  .title-slide .avatar {
+    width:90px; height:90px; border-radius:50%;
+    background: linear-gradient(135deg, #00C896, #1E88E5);
+    display:flex; align-items:center; justify-content:center;
+    font-size:42px; font-weight:900; color:#fff;
+    margin: 0 auto 20px;
+    box-shadow: 0 0 30px rgba(0,200,150,0.6);
+    font-family: 'Orbitron', sans-serif;
+  }
+
+  /* Nav buttons */
+  .nav {
+    position:fixed; bottom:24px; right:32px;
+    display:flex; gap:12px; z-index:100;
+  }
+  .nav button {
+    background: linear-gradient(135deg, #00C896, #1E88E5);
+    color:#fff; border:none;
+    width:52px; height:52px; border-radius:50%;
+    font-size:20px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow: 0 6px 20px rgba(0,200,150,0.4);
+    transition: all 0.3s;
+  }
+  .nav button:hover {
+    transform: scale(1.15) rotate(5deg);
+    box-shadow: 0 10px 30px rgba(0,200,150,0.7);
+  }
+  .nav button:active { transform: scale(0.95); }
+
+  /* Counter */
+  .counter {
+    position:fixed; bottom:36px; left:32px;
+    color:#8899aa; font-size:14px;
+    font-weight:600; letter-spacing:1px;
+    z-index:100;
+    background: rgba(0,0,0,0.4);
+    padding:8px 16px; border-radius:20px;
+    border:1px solid rgba(0,200,150,0.3);
+  }
+  .counter b { color:#00C896; font-size:16px; }
+
+  /* Progress bar */
+  .progress {
+    position:fixed; bottom:0; left:0;
+    height:4px;
+    background: linear-gradient(90deg, #00C896, #1E88E5);
+    transition: width 0.5s ease;
+    z-index:101;
+    box-shadow: 0 0 15px rgba(0,200,150,0.7);
+  }
+
+  /* Keyboard hint */
+  .hint {
+    position:fixed; top:20px; right:30px;
+    color:#556;
+    font-size:12px;
+    z-index:100;
+    background: rgba(0,0,0,0.4);
+    padding:6px 14px; border-radius:16px;
+    border:1px solid rgba(255,255,255,0.08);
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 1: TITLE -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide active title-slide">
+  <div class="topbar"></div>
+  <div class="avatar">TT</div>
+  <h1>Web-Based Travel & Tour<br>Management System</h1>
+  <div class="sub" style="font-size:22px;color:#00C896;font-weight:600;letter-spacing:3px;">
+    ⚡ REAL-TIME VEHICLE TRACKING ⚡
+  </div>
+  <div class="divider"></div>
+  <div class="sub">
+    Sri Lanka Institute of Advanced Technological Education (SLIATE)<br>
+    Advanced Technological Institute of Tangalle
+  </div>
+  <div class="sub" style="margin-top:28px;font-size:16px;">
+    <b style="color:#00C896;">Presented by:</b> H.P.D Dilshan Kumara &nbsp;•&nbsp;
+    <b style="color:#00C896;">Reg No:</b> TAN/IT/2324/F/0062<br>
+    <b style="color:#00C896;">Supervisor:</b> Mr. MAM Althaf
+  </div>
+  <div class="footer">HND in Information Technology — Year 2, Semester 2</div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 2: INTRODUCTION -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="topbar"></div>
+  <h2><span class="icon">🚀</span> Introduction</h2>
+  <div class="content">
+    <div class="two-col">
+      <div class="card">
+        <h3>📦 Project Overview</h3>
+        <ul>
+          <li>Complete web-based software for travel agencies</li>
+          <li>Manages all operations in one platform</li>
+          <li>Replaces manual paper-based methods</li>
+          <li>Built with open-source technologies</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>👥 Three User Roles</h3>
+        <ul>
+          <li><b style="color:#1E88E5;">Administrator</b> — Full control</li>
+          <li><b style="color:#7C3AED;">Vehicle Manager</b> — Fleet only</li>
+          <li><b style="color:#00C896;">Customer</b> — Book & track</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card" style="margin-top:20px;text-align:center;">
+      <h3 style="justify-content:center;">⭐ Key Focus</h3>
+      <p style="font-size:20px;color:#00C896;font-weight:600;">
+        Real-Time Trip Status Engine + Live GPS Vehicle Tracking
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 3: PROBLEM -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="topbar"></div>
+  <h2><span class="icon">⚠️</span> Problem Statement</h2>
+  <div class="content">
+    <div class="kpi-grid">
+      <div class="kpi"><div class="label">Double Bookings</div><div class="value">❌</div></div>
+      <div class="kpi"><div class="label">Slow Confirmation</div><div class="value">❌</div></div>
+      <div class="kpi"><div class="label">No Real-Time View</div><div class="value">❌</div></div>
+      <div class="kpi"><div class="label">Manual Reports</div><div class="value">❌</div></div>
+      <div class="kpi"><div class="label">Lost Data</div><div class="value">❌</div></div>
+      <div class="kpi"><div class="label">Missed Emails</div><div class="value">❌</div></div>
+    </div>
+    <div class="card" style="margin-top:24px;border-left:4px solid #FFC107;">
+      <h3 style="color:#FFC107;">🔍 Research Question</h3>
+      <p style="font-size:18px;font-style:italic;">
+        "How can a small travel agency automate daily operations without expensive enterprise software?"
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 4: AIMS & OBJECTIVES -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="topbar"></div>
+  <h2><span class="icon">🎯</span> Aims & Objectives</h2>
+  <div class="content">
+    <div class="two-col">
+      <div class="card">
+        <h3>🎯 Aims</h3>
+        <ul>
+          <li>Design a complete web-based system</li>
+          <li>Automate all daily operations</li>
+          <li>Provide real-time tracking</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>📋 Key Objectives</h3>
+        <ul>
+          <li>MySQL database instead of paper</li>
+          <li>3-role secure login</li>
+          <li>Real-time status engine</li>
+          <li>Auto email notifications</li>
+          <li>PDF report generation</li>
+        </ul>
+      </div>
+    </div>
+    <div class="pills" style="margin-top:20px;">
+      <span class="pill">🔐 Authentication</span>
+      <span class="pill">📍 Live GPS</span>
+      <span class="pill">📊 9-Tab Reports</span>
+      <span class="pill">📧 Auto Email</span>
+      <span class="pill">🗺️ Custom Trips</span>
+      <span class="pill">🎯 Kanban Board</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 5: TECH STACK -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="topbar"></div>
+  <h2><span class="icon">⚙️</span> Technology Stack</h2>
+  <div class="content">
+    <div class="two-col">
+      <div class="card">
+        <h3>🔧 Backend</h3>
+        <div class="pills">
+          <span class="pill">PHP 7.4+</span>
+          <span class="pill">MySQL 8.0</span>
+          <span class="pill">Apache</span>
+        </div>
+      </div>
+      <div class="card">
+        <h3>🎨 Frontend</h3>
+        <div class="pills">
+          <span class="pill">HTML5</span>
+          <span class="pill">CSS3</span>
+          <span class="pill">JavaScript ES6+</span>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:18px;">
+      <h3>📚 Libraries & APIs</h3>
+      <div class="pills">
+        <span class="pill">📧 PHPMailer</span>
+        <span class="pill">📄 Dompdf</span>
+        <span class="pill">📊 Chart.js</span>
+        <span class="pill">📋 DataTables</span>
+        <span class="pill">🗺️ Google Maps</span>
+        <span class="pill">🍃 Leaflet.js</span>
+        <span class="pill">🎨 Font Awesome</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 6: ARCHITECTURE -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="topbar"></div>
+  <h2><span class="icon">🏗️</span> System Architecture</h2>
+  <div class="content">
+    <div class="card">
+      <h3>👤 Tier 1 — Client Layer</h3>
+      <p>Admin Browser &nbsp;|&nbsp; Vehicle Manager Browser &nbsp;|&nbsp; User Browser</p>
+    </div>
+    <div class="card" style="margin-top:14px;">
+      <h3>🎨 Tier 2 — Presentation Layer</h3>
+      <p>HTML5 + CSS3 (Glassmorphism) + JavaScript ES6+</p>
+    </div>
+    <div class="card" style="margin-top:14px;">
+      <h3>⚙️ Tier 3 — Application Layer</h3>
+      <p>PHP 7.4+ Scripts (36 files) | Session | Auth | Business Logic | GPS | PDF | Email</p>
+    </div>
+    <div class="card" style="margin-top:14px;">
+      <h3>🗄️ Tier 4 — Data Layer</h3>
+      <p>MySQL 8.0 Database (21 Tables with Foreign Keys)</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 7: DATABASE -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="topbar"></div>
+  <h2><span class="icon">🗄️</span> Database Design — 21 Tables</h2>
+  <div class="content">
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="label">👥 User Management</div>
+        <div class="value" style="font-size:15px;">5 Tables</div>
+        <p style="font-size:12px;color:#8899aa;margin-top:6px;">users, admin, manager, operators, drivers</p>
+      </div>
+      <div class="kpi">
+        <div class="label">💼 Core Business</div>
+        <div class="value" style="font-size:15px;">4 Tables</div>
+        <p style="font-size:12px;color:#8899aa;margin-top:6px;">packages, bookings, vehicles, payments</p>
+      </div>
+      <div class="kpi">
+        <div class="label">💬 Communication</div>
+        <div class="value" style="font-size:15px;">4 Tables</div>
+        <p style="font-size:12px;color:#8899aa;margin-top:6px;">feedbacks, messages, notifications</p>
+      </div>
+      <div class="kpi">
+        <div class="label">🚗 Vehicle Mgmt</div>
+        <div class="value" style="font-size:15px;">3 Tables</div>
+        <p style="font-size:12px;color:#8899aa;margin-top:6px;">documents, expenses, booking_vehicles</p>
+      </div>
+      <div class="kpi">
+        <div class="label">🔧 System</div>
+        <div class="value" style="font-size:15px;">5 Tables</div>
+        <p style="font-size:12px;color:#8899aa;margin-top:6px;">audit logs, settings, resets</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 8: STATUS ENGINE -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="topbar"></div>
+  <h2><span class="icon">⚡</span> Real-Time Status Engine</h2>
+  <div class="content">
+    <div class="card" style="border-left:4px solid #1E88E5;">
+      <h3>🧮 SQL Calculation</h3>
+      <pre><code>CASE WHEN CURDATE() BETWEEN booking_date
+     AND DATE_ADD(booking_date, INTERVAL (days-1) DAY)
+  THEN 'Ongoing'
+WHEN CURDATE() > DATE_ADD(...)
+  THEN 'Completed'
+ELSE 'Upcoming' END</code></pre>
+    </div>
+    <div class="kpi-grid" style="margin-top:20px;">
+      <div class="kpi"><div class="label">🟢 Ongoing</div><div class="value" style="font-size:16px;">Today is inside range</div></div>
+      <div class="kpi"><div class="label">🔴 Completed</div><div class="value" style="font-size:16px;">Today is after end</div></div>
+      <div class="kpi"><div class="label">🔵 Upcoming</div><div class="value" style="font-size:16px;">Today is before start</div></div>
+    </div>
+    <p style="text-align:center;margin-top:16px;color:#00C896;font-weight:700;font-size:18px;">
+      ✨ No Manual Work Required! ✨
+    </p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 9: USER ROLES -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="topbar"></div>
+  <h2><span class="icon">👥</span> User Roles & Modules</h2>
+  <div class="content">
+    <div class="two-col">
+      <div class="card" style="border-top:3px solid #1E88E5;">
+        <h3>🔵 Administrator (16 files)</h3>
+        <ul>
+          <li>Dashboard — 8 KPI + 3 Charts</li>
+          <li>Package CRUD | Bookings</li>
+          <li>Vehicle Fleet | Users</li>
+          <li>Advanced Reports (9 tabs)</li>
+          <li>GPS Simulator | Feedback</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid #7C3AED;">
+        <h3>🟣 Vehicle Manager (12 files)</h3>
+        <ul>
+          <li>Dashboard — 6 KPI</li>
+          <li>Fleet Management</li>
+          <li>Driver Management</li>
+          <li>Kanban Reports</li>
+          <li>Expense Tracking</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px;border-top:3px solid #00C896;">
+      <h3>🟢 Customer (9 files)</h3>
+      <div class="pills">
+        <span class="pill">Dashboard</span>
+        <span class="pill">Package Browser</span>
+        <span class="pill">Custom Trip Planner</span>
+        <span class="pill">My Bookings</span>
+        <span class="pill">Payment</span>
+        <span class="pill">Feedback</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 10: CUSTOM TRIP -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="topbar"></div>
+  <h2><span class="icon">🗺️</span> Custom Trip Planner</h2>
+  <div class="content">
+    <div class="timeline">
+      <div class="tl-step"><div class="tl-dot">📍</div><p>Pickup<br>Marker</p></div>
+      <div class="tl-step"><div class="tl-dot">🎯</div><p>Destination<br>Marker</p></div>
+      <div class="tl-step"><div class="tl-dot">📏</div><p>Distance<br>Calculated</p></div>
+      <div class="tl-step"><div class="tl-dot">🚗</div><p>Select<br>Vehicle</p></div>
+      <div class="tl-step"><div class="tl-dot">💰</div><p>Cost<br>Calculated</p></div>
+      <div class="tl-step"><div class="tl-dot">✅</div><p>Booking<br>Confirmed</p></div>
+    </div>
+    <div class="card" style="margin-top:20px;">
+      <h3>🧮 Haversine Formula</h3>
+      <p><code>d = R × c</code> &nbsp; where R = 6371 km (Earth's radius)</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 11: GPS TRACKING -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="topbar"></div>
+  <h2><span class="icon">📡</span> Live GPS Tracking</h2>
+  <div class="content">
+    <div class="two-col">
+      <div class="card">
+        <h3>🗺️ Interactive Map</h3>
+        <ul>
+          <li>Leaflet.js powered</li>
+          <li>Auto-refresh every 2 seconds</li>
+          <li>Sri Lanka map with markers</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>🎨 Color Codes</h3>
+        <p style="margin:8px 0;">
+          <span class="badge green">● Available</span>
+          <span class="badge yellow">● On Trip</span>
+        </p>
+        <p>
+          <span class="badge red">● Maintenance</span>
+          <span class="badge blue">● Inactive</span>
+        </p>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px;border-left:4px solid #00C896;">
+      <h3>🎮 GPS Simulator</h3>
+      <p>Admin can simulate GPS movements | Random coordinates saved to DB | Real-time visualization</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 12: REPORTS -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="topbar"></div>
+  <h2><span class="icon">📊</span> Advanced Reports — 9 Tabs</h2>
+  <div class="content">
+    <div class="kpi-grid">
+      <div class="kpi"><div class="label">Tab 1</div><div class="value" style="font-size:16px;">💰 Profit</div></div>
+      <div class="kpi"><div class="label">Tab 2</div><div class="value" style="font-size:16px;">✅ Completed</div></div>
+      <div class="kpi"><div class="label">Tab 3</div><div class="value" style="font-size:16px;">🔄 Ongoing</div></div>
+      <div class="kpi"><div class="label">Tab 4</div><div class="value" style="font-size:16px;">📋 All Bookings</div></div>
+      <div class="kpi"><div class="label">Tab 5</div><div class="value" style="font-size:16px;">👤 Travellers</div></div>
+      <div class="kpi"><div class="label">Tab 6</div><div class="value" style="font-size:16px;">🚗 Vehicles</div></div>
+      <div class="kpi"><div class="label">Tab 7</div><div class="value" style="font-size:16px;">📦 Unused</div></div>
+      <div class="kpi"><div class="label">Tab 8</div><div class="value" style="font-size:16px;">🗑️ Deleted</div></div>
+      <div class="kpi"><div class="label">Tab 9</div><div class="value" style="font-size:16px;">🏆 Top Lists</div></div>
+    </div>
+    <p style="text-align:center;margin-top:20px;font-size:16px;">
+      <b style="color:#00C896;">Export:</b> PDF | CSV | Print
+    </p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 13: KANBAN -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="topbar"></div>
+  <h2><span class="icon">🎯</span> Kanban Board</h2>
+  <div class="content">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:20px;">
+      <div class="card" style="border-top:4px solid #1E88E5;text-align:center;">
+        <h3 style="justify-content:center;color:#1E88E5;">📅 UPCOMING</h3>
+        <p style="color:#8899aa;">Booking cards</p>
+      </div>
+      <div class="card" style="border-top:4px solid #FFC107;text-align:center;">
+        <h3 style="justify-content:center;color:#FFC107;">🔄 ONGOING</h3>
+        <p style="color:#8899aa;">Active trips</p>
+      </div>
+      <div class="card" style="border-top:4px solid #00C896;text-align:center;">
+        <h3 style="justify-content:center;color:#00C896;">✅ COMPLETED</h3>
+        <p style="color:#8899aa;">Finished trips</p>
+      </div>
+    </div>
+    <div class="card">
+      <h3>✨ Features</h3>
+      <ul>
+        <li>Drag-and-drop between columns</li>
+        <li>Instant AJAX database updates</li>
+        <li>Real-time synchronization</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 14: SECURITY -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="topbar"></div>
+  <h2><span class="icon">🔐</span> Security — 12 Layers</h2>
+  <div class="content">
+    <div class="sec-grid">
+      <div class="sec-item"><b>01. Authentication</b><span>Session-based (3 tables)</span></div>
+      <div class="sec-item"><b>02. Password Hashing</b><span>bcrypt / SHA1</span></div>
+      <div class="sec-item"><b>03. SQL Injection</b><span>Prepared statements</span></div>
+      <div class="sec-item"><b>04. XSS Prevention</b><span>htmlspecialchars()</span></div>
+      <div class="sec-item"><b>05. CSRF Protection</b><span>Token verification</span></div>
+      <div class="sec-item"><b>06. Session Security</b><span>Cookie + cache-control</span></div>
+      <div class="sec-item"><b>07. API Key</b><span>Location endpoint</span></div>
+      <div class="sec-item"><b>08. Input Validation</b><span>Email, phone, price</span></div>
+      <div class="sec-item"><b>09. Audit Logging</b><span>All actions logged</span></div>
+      <div class="sec-item"><b>10. Soft Delete</b><span>Booking recovery</span></div>
+      <div class="sec-item"><b>11. File Validation</b><span>jpg, png, gif only</span></div>
+      <div class="sec-item"><b>12. Auto-Complete</b><span>Session control</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 15: COMPARISON -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="topbar"></div>
+  <h2><span class="icon">⚖️</span> Comparison</h2>
+  <div class="content">
+    <table>
+      <tr><th>Feature</th><th>Static</th><th>POS</th><th>Enterprise</th><th style="color:#00C896;">Ours</th></tr>
+      <tr><td>Package Browsing</td><td>✅</td><td>❌</td><td>✅</td><td style="color:#00C896;font-weight:700;">✅</td></tr>
+      <tr><td>Online Booking</td><td>❌</td><td>❌</td><td>✅</td><td style="color:#00C896;font-weight:700;">✅</td></tr>
+      <tr><td>Auto Email</td><td>❌</td><td>❌</td><td>✅</td><td style="color:#00C896;font-weight:700;">✅</td></tr>
+      <tr><td>Real-time Status</td><td>❌</td><td>❌</td><td>✅</td><td style="color:#00C896;font-weight:700;">✅</td></tr>
+      <tr><td>Live GPS</td><td>❌</td><td>❌</td><td>✅</td><td style="color:#00C896;font-weight:700;">✅</td></tr>
+      <tr><td>Custom Trip Planner</td><td>❌</td><td>❌</td><td>✅</td><td style="color:#00C896;font-weight:700;">✅</td></tr>
+      <tr><td>Kanban Board</td><td>❌</td><td>❌</td><td>❌</td><td style="color:#00C896;font-weight:700;">✅</td></tr>
+      <tr><td>Free / Open Source</td><td>✅</td><td>❌</td><td>❌</td><td style="color:#00C896;font-weight:700;">✅</td></tr>
+    </table>
+    <p style="text-align:center;margin-top:18px;color:#00C896;font-weight:700;font-size:17px;">
+      🏆 Best features at zero cost!
+    </p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 16: SDLC -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="topbar"></div>
+  <h2><span class="icon">🔄</span> SDLC Phases</h2>
+  <div class="content">
+    <div class="timeline">
+      <div class="tl-step"><div class="tl-dot">📝</div><p><b>Phase 1</b><br>Requirement<br>Analysis</p></div>
+      <div class="tl-step"><div class="tl-dot">🎨</div><p><b>Phase 2</b><br>System &<br>DB Design</p></div>
+      <div class="tl-step"><div class="tl-dot">💻</div><p><b>Phase 3</b><br>Frontend &<br>Backend</p></div>
+      <div class="tl-step"><div class="tl-dot">🧪</div><p><b>Phase 4</b><br>System<br>Testing</p></div>
+      <div class="tl-step"><div class="tl-dot">🚀</div><p><b>Phase 5</b><br>Deploy &<br>Maintain</p></div>
+    </div>
+    <div class="card" style="margin-top:20px;">
+      <h3>🔍 Testing Types</h3>
+      <div class="pills">
+        <span class="pill">Unit Testing</span>
+        <span class="pill">Integration</span>
+        <span class="pill">UAT</span>
+        <span class="pill">Security</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 17: UI DESIGN -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="topbar"></div>
+  <h2><span class="icon">🎨</span> Interface Design</h2>
+  <div class="content">
+    <div class="two-col">
+      <div class="card">
+        <h3>✨ Glassmorphism</h3>
+        <ul>
+          <li>🪟 Frosted glass effect</li>
+          <li>🎬 Video background</li>
+          <li>🎈 Animated blobs</li>
+          <li>✨ Floating particles</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>🎨 Role Themes</h3>
+        <p style="margin:8px 0;"><span class="badge blue">Admin: Blue-Green</span></p>
+        <p style="margin:8px 0;"><span class="badge" style="background:rgba(124,58,237,0.2);color:#A78BFA;border:1px solid #7C3AED;">Manager: Purple-Blue</span></p>
+        <p style="margin:8px 0;"><span class="badge green">Customer: Sky-Green</span></p>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <h3>👥 HCI Guidelines</h3>
+      <div class="pills">
+        <span class="pill">Consistency</span>
+        <span class="pill">Feedback</span>
+        <span class="pill">Error Prevention</span>
+        <span class="pill">Aesthetic</span>
+        <span class="pill">Accessibility</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 18: ADMIN KPI -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="topbar"></div>
+  <h2><span class="icon">📊</span> Admin Dashboard</h2>
+  <div class="content">
+    <div class="kpi-grid">
+      <div class="kpi"><div class="label">👥 Total Users</div><div class="value">9</div></div>
+      <div class="kpi"><div class="label">✈️ Travellers</div><div class="value">12</div></div>
+      <div class="kpi"><div class="label">📦 Packages</div><div class="value">12</div></div>
+      <div class="kpi"><div class="label">📋 Bookings</div><div class="value">59</div></div>
+      <div class="kpi"><div class="label">📅 Today</div><div class="value">2</div></div>
+      <div class="kpi"><div class="label">💰 Revenue</div><div class="value">Rs. 152.8M</div></div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <h3>📈 Charts</h3>
+      <p>Revenue Trend | Booking Status | Popular Packages</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 19: GPS SCREENSHOT -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="topbar"></div>
+  <h2><span class="icon">🛰️</span> Live Vehicle Tracking</h2>
+  <div class="content">
+    <div class="card" style="border-left:4px solid #00C896;">
+      <h3>🗺️ Interactive Map Features</h3>
+      <ul>
+        <li>Leaflet.js interactive map of Sri Lanka</li>
+        <li>Color-coded vehicle markers</li>
+        <li>Auto-refresh every 2 seconds</li>
+        <li>Vehicle list panel with live status</li>
+        <li>Multiple vehicles tracked simultaneously</li>
+      </ul>
+    </div>
+    <div class="kpi-grid" style="margin-top:18px;">
+      <div class="kpi"><div class="label">🟢 Available</div><div class="value" style="font-size:20px;">Active</div></div>
+      <div class="kpi"><div class="label">🟡 On Trip</div><div class="value" style="font-size:20px;">Moving</div></div>
+      <div class="kpi"><div class="label">🔴 Maintenance</div><div class="value" style="font-size:20px;">Servicing</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 20: USER INTERFACE -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="topbar"></div>
+  <h2><span class="icon">👤</span> User Interface</h2>
+  <div class="content">
+    <div class="two-col">
+      <div class="card">
+        <h3>🏠 Dashboard</h3>
+        <ul>
+          <li>Personalized greeting</li>
+          <li>Live clock</li>
+          <li>Quick navigation</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>📋 My Bookings</h3>
+        <ul>
+          <li>Status badges (real-time)</li>
+          <li>Progress bars</li>
+          <li>Export functionality</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <h3>💳 Payment Interface</h3>
+      <p>Secure checkout | Multiple payment methods | Card formatting | Confetti animation on success 🎉</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 21: CONCLUSIONS -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="topbar"></div>
+  <h2><span class="icon">🏆</span> Conclusions</h2>
+  <div class="content">
+    <div class="kpi-grid">
+      <div class="kpi"><div class="label">✅ Accuracy</div><div class="value" style="font-size:16px;">No Double Bookings</div></div>
+      <div class="kpi"><div class="label">⚡ Speed</div><div class="value" style="font-size:16px;">Seconds, Not Hours</div></div>
+      <div class="kpi"><div class="label">👁️ Transparency</div><div class="value" style="font-size:16px;">Real-Time Status</div></div>
+      <div class="kpi"><div class="label">💹 Profitability</div><div class="value" style="font-size:16px;">Detailed Analytics</div></div>
+    </div>
+    <div class="card" style="margin-top:20px;text-align:center;border:2px solid #00C896;">
+      <h3 style="justify-content:center;font-size:24px;">⭐ Most Innovative Feature</h3>
+      <p style="font-size:20px;color:#00C896;font-weight:700;margin-top:10px;">
+        Real-Time Trip Status Engine
+      </p>
+      <p style="color:#d8e0ec;margin-top:8px;">
+        Auto-calculates status • Triggers emails • Releases vehicles
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 22: FUTURE -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="topbar"></div>
+  <h2><span class="icon">🚀</span> Future Development</h2>
+  <div class="content">
+    <div class="two-col">
+      <div class="card">
+        <ul>
+          <li>💳 Real Payment Gateway</li>
+          <li>📱 Mobile App (Flutter)</li>
+          <li>📧 SMS Notifications</li>
+          <li>🤖 AI Recommendations</li>
+          <li>📊 Predictive Analytics</li>
+          <li>🌐 Multi-Language Support</li>
+        </ul>
+      </div>
+      <div class="card">
+        <ul>
+          <li>📡 Real GPS Hardware</li>
+          <li>💬 Live Chat Support</li>
+          <li>🎁 Loyalty Rewards</li>
+          <li>☁️ Cloud Deployment</li>
+          <li>🏢 Multi-Tenant Support</li>
+          <li>📅 Scheduled Reports</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 23: THANK YOU -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="slide title-slide">
+  <div class="topbar"></div>
+  <h1 style="font-size:80px;">Thank You!</h1>
+  <div class="divider"></div>
+  <div class="sub" style="font-size:26px;color:#00C896;font-weight:700;">
+    Questions & Answers
+  </div>
+  <div class="sub" style="margin-top:34px;">
+    <b style="color:#00C896;">H.P.D Dilshan Kumara</b><br>
+    Reg No: TAN/IT/2324/F/0062<br>
+    Supervisor: Mr. MAM Althaf
+  </div>
+  <div class="footer">SLIATE — Tangalle</div>
+</div>
+
+<!-- ═══════════ UI ELEMENTS ═══════════ -->
+<div class="counter"><b id="cur">1</b> / 23</div>
+<div class="progress" id="progress" style="width:4%;"></div>
+<div class="hint">⬅ ➡ Use arrow keys</div>
+<div class="nav">
+  <button onclick="prev()" title="Previous">◀</button>
+  <button onclick="next()" title="Next">▶</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  let idx = 0;
+  function show(n) {
+    slides[idx].classList.remove('active');
+    idx = (n + slides.length) % slides.length;
+    slides[idx].classList.add('active');
+    document.getElementById('cur').textContent = idx + 1;
+    document.getElementById('progress').style.width =
+      ((idx + 1) / slides.length * 100) + '%';
+  }
+  function next() { show(idx + 1); }
+  function prev() { show(idx - 1); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') next();
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') prev();
+    if (e.key === 'Home') show(0);
+    if (e.key === 'End') show(slides.length - 1);
+  });
+
+  // Touch swipe
+  let startX = 0;
+  document.addEventListener('touchstart', e => startX = e.touches[0].clientX);
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - startX;
+    if (dx > 60) prev();
+    if (dx < -60) next();
+  });
+</script>
+</body>
+</html>
